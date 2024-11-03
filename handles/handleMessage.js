@@ -64,13 +64,15 @@ async function handleMessage(event, pageAccessToken) {
     }
 
     // Wag ka mag change dito sa ai handle mag kaka error lahat
-    const aiCommand = commands.get('ai');
-    if (aiCommand) {
+    if (commands.has('gpt4o')) {
       try {
-        await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
+        await commands.get('gpt4o').execute(senderId, [commandName, ...args], pageAccessToken, sendMessage);
       } catch (error) {
+        console.error(`${colors.red}Error executing default universal command:${colors.reset}`, error);
         sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
       }
+    } else {
+      sendMessage(senderId, { text: 'Command not found and no default action available.' }, pageAccessToken);
     }
   }
 
