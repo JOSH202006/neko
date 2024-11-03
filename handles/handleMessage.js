@@ -1,19 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-const axios = require('axios');
-const { sendMessage } = require('./sendMessage'); // Ensure this is correctly exported from sendMessage.js
-const commands = new Map();
-const prefix = ''; // Define a prefix if needed (e.g., '!')
-
-/**
- * Load all commands from the commands folder
- */
-const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
-for (const file of commandFiles) {
-  const command = require(`../commands/${file}`);
-  commands.set(command.name.toLowerCase(), command);
-}
-
 /**
  * Handle incoming messages and execute corresponding commands
  */
@@ -71,15 +55,16 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    // Fallback to AI handling if command is not found
+    // If no command was found, use AI handling as a fallback
     const aiCommand = commands.get('ai');
-    if (aiCommand) {
+    if (aiCommand && !commandName) { // Only if there's no commandName, fallback to AI
       try {
         await aiCommand.execute(senderId, messageText, pageAccessToken, sendMessage);
       } catch (error) {
         console.error('Error processing AI request:', error.message);
         sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
       }
+      return;
     }
   }
 
@@ -96,27 +81,3 @@ async function handleMessage(event, pageAccessToken) {
     }
   }
 }
-
-/**
- * Fetch image attachment from a replied-to message
- */
-async function getAttachments(mid, pageAccessToken) {
-  if (!mid) throw new Error("No message ID provided.");
-
-  try {
-    const { data } = await axios.get(`https://graph.facebook.com/v21.0/${mid}/attachments`, {
-      params: { access_token: pageAccessToken }
-    });
-
-    if (data && data.data.length > 0 && data.data[0].image_data && data.data[0].image_data.url) {
-      return data.data[0].image_data.url;
-    } else {
-      throw new Error("No image found in the replied message.");
-    }
-  } catch (error) {
-    console.error('Error fetching attachments from Facebook API:', error.message);
-    throw error; // Propagate the error to be handled in handleMessage
-  }
-}
-
-module.exports = { handleMessage };
