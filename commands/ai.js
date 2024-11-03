@@ -2,21 +2,21 @@ const axios = require('axios');
 
 module.exports = {
   name: 'ai',
-  description: 'Ask a question to the Heru AI',
+  description: 'Ask a question to the 𝙽𝚎𝚔𝚘 𝙰𝙸',
   usage: 'ai <question>',
-  author: 'Heru',
+  author: 'Clarence',
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const prompt = args.join(' ');
     try {
-      const apiUrl = `https://heru-ai-1kgm.vercel.app/heru?prompt=${encodeURIComponent(prompt)}`;
+      const apiUrl = `https://rest-api-french.onrender.com/api/neko?prompt=${encodeURIComponent(prompt)}&uid=${senderId}`;
       const response = await axios.get(apiUrl);
       const text = response.data.response;
 
       // Send the response, split into chunks if necessary
       await sendResponseInChunks(senderId, text, pageAccessToken, sendMessage);
     } catch (error) {
-      console.error('Error calling Heru AI API:', error);
-      sendMessage(senderId, { text: '⚠️ | Opss! Something went wrong on api please contact Jay Mar on Facebook. Thank you!.' }, pageAccessToken);
+      console.error('Error calling 𝙽𝚎𝚔𝚘 𝙰𝙸 API:', error);
+      sendMessage(senderId, { text: '⚠️ | Opss! Something went wrong on api please contact French Mangigo on Facebook. Thank you!.' }, pageAccessToken);
     }
   }
 };
