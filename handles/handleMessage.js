@@ -18,7 +18,7 @@ async function handleMessage(event, pageAccessToken) {
   const senderId = event.sender.id;
   let imageUrl = null;
 
-  // Auto detect image to
+  // Auto detect image attachments
   if (event.message && event.message.attachments) {
     const imageAttachment = event.message.attachments.find(att => att.type === 'image');
     if (imageAttachment) {
@@ -26,10 +26,10 @@ async function handleMessage(event, pageAccessToken) {
     }
   }
 
-  // Auto detect image din to
+  // Auto detect image from replied message
   if (event.message && event.message.reply_to && event.message.reply_to.mid) {
     try {
-      imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken); // Fetch image from replied message
+      imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
     } catch (error) {
       console.error('Error fetching image from replied message:', error.message);
     }
@@ -38,7 +38,7 @@ async function handleMessage(event, pageAccessToken) {
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
     let commandName, args;
-    
+
     if (messageText.startsWith(prefix)) {
       const argsArray = messageText.slice(prefix.length).split(' ');
       commandName = argsArray.shift().toLowerCase();
@@ -58,17 +58,19 @@ async function handleMessage(event, pageAccessToken) {
           await command.execute(senderId, args, pageAccessToken, sendMessage, imageUrl);
         }
       } catch (error) {
+        console.error('Error executing command:', error.message);
         sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
       }
       return;
     }
 
-    // Wag ka mag change dito sa ai handle mag kaka error lahat
+    // Handle default AI command
     if (commands.has('ai')) {
+      console.log(`Executing default AI command with name: ${commandName}, args: ${args}`);
       try {
         await commands.get('ai').execute(senderId, [commandName, ...args], pageAccessToken, sendMessage);
       } catch (error) {
-        console.error(`${colors.red}Error executing default universal command:${colors.reset}`, error);
+        console.error('Error executing default universal command:', error);
         sendMessage(senderId, { text: 'There was an error processing your request.' }, pageAccessToken);
       }
     } else {
@@ -85,7 +87,6 @@ async function handleMessage(event, pageAccessToken) {
         sendMessage(senderId, { text: 'There was an error processing your image.' }, pageAccessToken);
       }
     }
-  }
 }
 
 async function getAttachments(mid, pageAccessToken) {
