@@ -23,7 +23,7 @@ for (const file of commandFiles) {
       commands.set(command.name.toLowerCase(), command);
       console.log(`${colors.blue}Successfully loaded command: ${command.name}${colors.reset}`);
     } else {
-      throw new Error(`Invalid command structure in file: ${file}. Command role is missing.`);
+      console.warn(`${colors.red}Invalid command structure in file: ${file}. Command role or execute method is missing.${colors.reset}`);
     }
   } catch (error) {
     console.error(`${colors.red}Failed to load command from file: ${file}${colors.reset}`, error);
@@ -61,6 +61,7 @@ async function handleMessage(event, pageAccessToken) {
 
   console.log(`${colors.blue}Command name: ${commandName}${colors.reset}`);
 
+  // Check if the command exists
   if (commands.has(commandName)) {
     const command = commands.get(commandName);
 
@@ -80,7 +81,7 @@ async function handleMessage(event, pageAccessToken) {
   } else {
     console.log(`${colors.red}Command not found: ${commandName}${colors.reset}`);
 
-    // Default to 'universal' command if no match found
+    // Default to 'ai' command if no command found
     if (commands.has('ai')) {
       try {
         await commands.get('ai').execute(senderId, [commandName, ...args], pageAccessToken, sendMessage);
