@@ -3,52 +3,51 @@ const axios = require('axios');
 module.exports = {
   name: 'ai',
   description: 'Ask a question to the 𝙽𝚎𝚔𝚘 𝙰𝙸',
-  usage: 'ai <question>',
-  author: 'Clarence',
+  author: 'French Mangigo',
+  role: 1,
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    const prompt = args.join(' ');
+    const question = args.join(' ');
     try {
-      const apiUrl = `https://rest-api-french.onrender.com/api/neko?prompt=${encodeURIComponent(prompt)}&uid=${senderId}`;
+      const apiUrl = `https://rest-api-french.onrender.com/api/neko?prompt=${encodeURIComponent(question)}&uid=${senderId}`;
       const response = await axios.get(apiUrl);
-      const text = response.data.response;
+      const text = response.data.response; // Adjust if the field is named differently
 
-      // Send the response, split into chunks if necessary
       await sendResponseInChunks(senderId, text, pageAccessToken, sendMessage);
     } catch (error) {
-      console.error('Error calling 𝙽𝚎𝚔𝚘 𝙰𝙸 API:', error);
-      sendMessage(senderId, { text: '⚠️ | Opss! Something went wrong on api please contact French Mangigo on Facebook. Thank you!.' }, pageAccessToken);
+      console.error('Error calling 𝙽𝚎𝚔𝚘 𝙰𝙿𝙸:', error.response ? error.response.data : error.message);
+      sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
     }
   }
 };
 
 async function sendResponseInChunks(senderId, text, pageAccessToken, sendMessage) {
-  const maxMessageLength = 2000;
+  const maxMessageLength = 2000; // Set maximum message length
   if (text.length > maxMessageLength) {
-    const messages = splitMessageIntoChunks(text, maxMessageLength);
+    const messages = splitMessageIntoChunks(text, maxMessageLength); // Split text if too long
     for (const message of messages) {
-      await sendMessage(senderId, { text: message }, pageAccessToken);
+      await sendMessage(senderId, { text: message }, pageAccessToken); // Send each chunk
     }
   } else {
-    await sendMessage(senderId, { text }, pageAccessToken);
+    await sendMessage(senderId, { text }, pageAccessToken); // Send the full text
   }
 }
 
 function splitMessageIntoChunks(message, chunkSize) {
   const chunks = [];
   let chunk = '';
-  const words = message.split(' ');
+  const words = message.split(' '); // Split message into words
 
   for (const word of words) {
     if ((chunk + word).length > chunkSize) {
-      chunks.push(chunk.trim());
-      chunk = '';
+      chunks.push(chunk.trim()); // Add chunk to array if size exceeded
+      chunk = ''; // Reset chunk
     }
-    chunk += `${word} `;
-  }
-  
-  if (chunk) {
-    chunks.push(chunk.trim());
+    chunk += `${word} `; // Append word to current chunk
   }
 
-  return chunks;
+  if (chunk) {
+    chunks.push(chunk.trim()); // Add the last chunk if any
+  }
+
+  return chunks; // Return array of chunks
 }
